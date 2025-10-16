@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- HTML with 5 intentional errors -->
+    
+    <header>
+        <h1>Student Management Portal</h1>
+        <p>Comprehensive student information system</p>
+    </header>
+    
+    <main>
+        <!-- Dashboard Stats -->
+        <section class="dashboard">
+            <div class="stat-card">
+                <h3>Total Students</h3>
+                <span class="stat-number" id="totalCount">0</span>
+            </div>
+            <div class="stat-card">
+                <h3>Active Courses</h3>
+                <span class="stat-number" id="courseCount">0</span>
+            </div>
+            <div class="stat-card">
+                <h3>Average GPA</h3>
+                <span class="stat-number" id="avgGPA">0.0</span>
+            </div>
+        </section>
+        
+        <!-- Student Registration Form -->
+        <section class="form-container">
+            <h2>Register New Student</h2>
+            <!-- Error 1: Form missing action and method attributes -->
+            <form id="studentForm">
+                <div class="input-group">
+                    <!-- Error 2: Label missing for attribute -->
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter student name" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="email">Email Address</label>
+                    <!-- Error 3: Wrong input type for email -->
+                    <input type="text" id="email" placeholder="student@example.com" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="course">Course</label>
+                    <!-- Error 4: Select element missing closing tag -->
+                    <select id="course" required>
+                        <option value="">Choose a course</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Biology">Biology</option>
+                </div>
+                
+                <div class="input-group">
+                    <label for="gpa">GPA</label>
+                    <input type="number" id="gpa" min="0" max="4" step="0.1" placeholder="3.5" required>
+                </div>
+                
+                <div class="form-actions">
+                    <!-- Error 5: Button missing type attribute -->
+                    <button class="btn-primary">Add Student</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">Clear Form</button>
+                </div>
+            </form>
+        </section>
+        
+        <!-- Search and Filter -->
+        <section class="search-section">
+            <h2>Student Directory</h2>
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Search by name or email..." class="search-input">
+                <select id="courseFilter" class="filter-select">
+                    <option value="">All Courses</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                </select>
+            </div>
+        </section>
+        
+        <!-- Students Table -->
+        <section class="table-container">
+            <table class="students-table" id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Course</th>
+                        <th>GPA</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Student data will be inserted here -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+    
+    <script>
+        let students = [];
+        let studentCounter = 1;
+        
+        // Initialize form event listener
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addStudent();
+        });
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', filterStudents);
+        document.getElementById('courseFilter').addEventListener('change', filterStudents);
+        
+        function addStudent() {
+            const name = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const course = document.getElementById('course').value;
+            const gpa = parseFloat(document.getElementById('gpa').value);
+            
+            const student = {
+                id: studentCounter++,
+                name: name,
+                email: email,
+                phone: phone,
+                course: course,
+                gpa: gpa
+            };
+            
+            students.push(student);
+            updateDisplay();
+            resetForm();
+        }
+        
+        function updateDisplay() {
+            displayStudents();
+            updateStats();
+        }
+        
+        function displayStudents() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.phone}</td>
+                    <td>${student.course}</td>
+                    <td>${student.gpa.toFixed(1)}</td>
+                    <td class="actions">
+                        <button class="btn-edit" onclick="editStudent(${student.id})">Edit</button>
+                        <button class="btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+        
+        function updateStats() {
+            document.getElementById('totalCount').textContent = students.length;
+            
+            const uniqueCourses = [...new Set(students.map(s => s.course))];
+            document.getElementById('courseCount').textContent = uniqueCourses.length;
+            
+            if (students.length > 0) {
+                const avgGPA = students.reduce((sum, s) => sum + s.gpa, 0) / students.length;
+                document.getElementById('avgGPA').textContent = avgGPA.toFixed(2);
+            } else {
+                document.getElementById('avgGPA').textContent = '0.0';
+            }
+        }
+        
+        function deleteStudent(id) {
+            students = students.filter(s => s.id !== id);
+            updateDisplay();
+        }
+        
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('fullName').value = student.name;
+                document.getElementById('email').value = student.email;
+                document.getElementById('phone').value = student.phone;
+                document.getElementById('course').value = student.course;
+                document.getElementById('gpa').value = student.gpa;
+                
+                deleteStudent(id);
+            }
+        }
+        
+        function resetForm() {
+            document.getElementById('studentForm').reset();
+        }
+        
+        function filterStudents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const courseFilter = document.getElementById('courseFilter').value;
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[1].textContent.toLowerCase();
+                const email = row.cells[2].textContent.toLowerCase();
+                const course = row.cells[4].textContent;
+                
+                const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                const matchesCourse = !courseFilter || course === courseFilter;
+                
+                row.style.display = matchesSearch && matchesCourse ? '' : 'none';
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98f4444f526604e3',t:'MTc2MDU4MzIxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
